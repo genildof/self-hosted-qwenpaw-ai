@@ -1,0 +1,73 @@
+# QwenPaw on Coolify: One-Click Deployment Guide 🚀
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-official-blue)](https://hub.docker.com/r/agentscope/qwenpaw)
+[![Coolify](https://img.shields.io/badge/coolify-friendly-green)](https://coolify.io)
+
+**Deploy your own private AI Agent in minutes.** This repository provides the optimized `Dockerfile` and `docker-compose.yaml` needed to run **QwenPaw** on a **Coolify** server with persistent storage, automated networking, and secure memory.
+
+---
+
+## 🤖 What is QwenPaw?
+
+[QwenPaw](https://github.com/agentscope-ai/QwenPaw) is a powerful, self-hosted personal AI assistant built on the **Agent OS** architecture. It is designed to be your autonomous companion, featuring:
+
+*   **Three-Layer Memory:** Live context, full history, and distilled knowledge (nothing is lost).
+*   **Kernel-Level Sandbox:** Secure execution of tools and commands.
+*   **Multi-Channel Ops:** Connect to Discord, Telegram, WeChat, Slack, and more.
+*   **Agent OS Drivers:** Protocol-neutral connectors for MCP and cloud providers.
+
+## 🛠️ Why use this Coolify setup?
+
+While QwenPaw is easy to run locally, deploying it on a VPS via **Coolify** gives you a professional-grade AI workstation:
+
+*   **24/7 Availability:** Your agent handles news digests and report generation while you sleep.
+*   **Automated SSL/HTTPS:** Secure access from any device (Desktop, iPad, Mobile).
+*   **Persistent Storage:** Custom volume mappings ensure your agent's memory survives updates.
+*   **One-Click Updates:** Stay on the latest version of QwenPaw with zero downtime.
+
+---
+
+## 🚀 Quick Start (1-Click Deploy)
+
+1.  **Create a New Resource** in your Coolify dashboard.
+2.  **Select Public Repository** and paste this repository URL: `https://github.com/YOUR_USERNAME/qwenpaw-coolify-one-click`
+3.  **Choose Build Pack:** Select `Dockerfile`.
+4.  **Network Configuration:** Set the destination port to **`8088`**.
+5.  **Deploy!**
+
+### Environment Variables (Optional)
+
+You can configure these in the Coolify UI before or after deployment:
+
+| Variable | Default | Description |
+|---|---|---|
+| `QWENPAW_AUTH_ENABLED` | `false` | Set to `true` to enable console login |
+| `QWENPAW_AUTH_USERNAME` | `admin` | Your console username |
+| `QWENPAW_AUTH_PASSWORD` | *(empty)* | **Required** if authentication is enabled |
+
+---
+
+## ☕ Support & Donations
+
+If this deployment tool saved you time or helped you build your AI assistant, consider supporting the development!
+
+[![Buy Me A Coffee](https://camo.githubusercontent.com/0cf29a542375e1a46e84d8bf5805a4e5c0a6ee98b6547ccdc0c55eed49d99c69/68747470733a2f2f63646e2e6275796d6561636f666665652e636f6d2f627574746f6e732f76322f64656661756c742d79656c6c6f772e706e67)](https://buymeacoffee.com/genildof)
+
+> **Note:** If you want to use the QR code feature, make sure to copy your `bmc_qr.png` to the `assets/` folder of this repository.
+
+---
+
+## 🌟 Star the Repo
+
+If you find this useful, please give it a **Star**! It helps the project grow and makes it easier for other developers to find this self-hosted AI solution.
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+*Built for the AI Agent community. Powered by AgentScope and Coolify.*

@@ -1,8 +1,6 @@
 # QwenPaw on Coolify: One-Click Deployment Guide 🚀
 
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-official-blue)](https://hub.docker.com/r/agentscope/qwenpaw)
-[![Coolify](https://img.shields.io/badge/coolify-friendly-green)](https://coolify.io)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)[![Docker](https://img.shields.io/badge/docker-official-blue)](https://hub.docker.com/r/agentscope/qwenpaw)[![Coolify](https://img.shields.io/badge/coolify-friendly-green)](https://coolify.io)
 
 **Deploy your own private AI Agent in minutes.** This repository provides the optimized `Dockerfile` and `docker-compose.yaml` needed to run **QwenPaw** on a **Coolify** server with persistent storage, automated networking, and secure memory.
 
@@ -12,36 +10,48 @@
 
 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) is a powerful, self-hosted personal AI assistant built on the **Agent OS** architecture. It is designed to be your autonomous companion, featuring:
 
-*   **Three-Layer Memory:** Live context, full history, and distilled knowledge (nothing is lost).
-*   **Kernel-Level Sandbox:** Secure execution of tools and commands.
-*   **Multi-Channel Ops:** Connect to Discord, Telegram, WeChat, Slack, and more.
-*   **Agent OS Drivers:** Protocol-neutral connectors for MCP and cloud providers.
+- **Three-Layer Memory:** Live context, full history, and distilled knowledge (nothing is lost).
+
+- **Kernel-Level Sandbox:** Secure execution of tools and commands.
+
+- **Multi-Channel Ops:** Connect to Discord, Telegram, WeChat, Slack, and more.
+
+- **Agent OS Drivers:** Protocol-neutral connectors for MCP and cloud providers.
 
 ## 🛠️ Why use this Coolify setup?
 
 While QwenPaw is easy to run locally, deploying it on a VPS via **Coolify** gives you a professional-grade AI workstation:
 
-*   **24/7 Availability:** Your agent handles news digests and report generation while you sleep.
-*   **Automated SSL/HTTPS:** Secure access from any device (Desktop, iPad, Mobile).
-*   **Persistent Storage:** Custom volume mappings ensure your agent's memory survives updates.
-*   **One-Click Updates:** Stay on the latest version of QwenPaw with zero downtime.
+- **24/7 Availability:** Your agent handles news digests and report generation while you sleep.
+
+- **Automated SSL/HTTPS:** Secure access from any device (Desktop, iPad, Mobile).
+
+- **Persistent Storage:** Custom volume mappings ensure your agent's memory survives updates.
+
+- **Automated Health Monitoring:** Built-in health checks ensure Coolify only routes traffic to a healthy agent.
+
+- **One-Click Updates:** Stay on the latest version of QwenPaw with zero downtime.
 
 ---
 
 ## 🚀 Quick Start (1-Click Deploy)
 
-1.  **Create a New Resource** in your Coolify dashboard.
-2.  **Select Public Repository** and paste this repository URL: `https://github.com/YOUR_USERNAME/qwenpaw-coolify-one-click`
-3.  **Choose Build Pack:** Select `Dockerfile`.
-4.  **Network Configuration:** Set the destination port to **`8088`**.
-5.  **Deploy!**
+1. **Create a New Resource** in your Coolify dashboard.
 
-### Environment Variables (Optional)
+1. **Select Public Repository** and paste this repository URL: `https://github.com/YOUR_USERNAME/qwenpaw-coolify-one-click`
+
+1. **Choose Build Pack:** Select `Dockerfile`.
+
+1. **Network Configuration:** Set the destination port to **`8088`**.
+
+1. **Deploy!**
+
+### Environment Variables (Optional )
 
 You can configure these in the Coolify UI before or after deployment:
 
 | Variable | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `QWENPAW_AUTH_ENABLED` | `false` | Set to `true` to enable console login |
 | `QWENPAW_AUTH_USERNAME` | `admin` | Your console username |
 | `QWENPAW_AUTH_PASSWORD` | *(empty)* | **Required** if authentication is enabled |

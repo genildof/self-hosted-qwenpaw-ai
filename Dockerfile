@@ -5,6 +5,12 @@
 
 FROM agentscope/qwenpaw:latest
 
+# Instalar curl para o healthcheck do Coolify (baseado em Alpine/Debian conforme a imagem oficial)
+# A imagem oficial geralmente é baseada em Python (Debian-slim ou Alpine)
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* || \
+    (apk add --no-cache curl)
+
 # Portas expostas pelo QwenPaw
 EXPOSE 8088
 

@@ -14,6 +14,12 @@ services:
     init: true
     container_name: qwenpaw
     restart: always
+    cpus: "${QWENPAW_CPUS:-1.50}"
+    mem_limit: "${QWENPAW_MEMORY_LIMIT:-2g}"
+    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-2g}"
+    pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
+    oom_kill_disable: false
+    stop_grace_period: 30s
     ports:
       - "8088:8088"
     environment:
@@ -30,3 +36,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "${QWENPAW_LOG_MAX_SIZE:-10m}"
+        max-file: "${QWENPAW_LOG_MAX_FILE:-3}"

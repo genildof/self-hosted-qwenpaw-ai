@@ -56,6 +56,25 @@ You can configure these in the Coolify UI before or after deployment:
 | `QWENPAW_AUTH_USERNAME` | `admin` | Your console username |
 | `QWENPAW_AUTH_PASSWORD` | *(empty)* | **Required** if authentication is enabled |
 
+### Coolify resource limits
+
+The Compose file ships with conservative runtime limits so QwenPaw cannot starve
+the Coolify host:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `QWENPAW_CPUS` | `1.50` | Maximum CPU cores available to the container |
+| `QWENPAW_MEMORY_LIMIT` | `2g` | Container memory limit |
+| `QWENPAW_MEMORY_SWAP_LIMIT` | `2g` | Total memory plus swap; keep equal to memory to avoid swap growth |
+| `QWENPAW_PIDS_LIMIT` | `256` | Maximum processes/threads inside the container |
+| `QWENPAW_LOG_MAX_SIZE` | `10m` | Maximum size for each container log file |
+| `QWENPAW_LOG_MAX_FILE` | `3` | Number of rotated log files to keep |
+
+If QwenPaw is killed by the OOM killer during heavy use, raise
+`QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in Coolify. On
+small VPS instances, keep swap equal to the memory limit and reduce
+`QWENPAW_CPUS` before adding other workloads to the same server.
+
 ---
 
 ## ☕ Support & Donations

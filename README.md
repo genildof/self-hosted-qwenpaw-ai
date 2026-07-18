@@ -2,13 +2,18 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)[![Docker](https://img.shields.io/badge/docker-official-blue)](https://hub.docker.com/r/agentscope/qwenpaw)[![Coolify](https://img.shields.io/badge/coolify-friendly-green)](https://coolify.io)
 
-**Deploy your own private AI Agent in minutes.** This repository provides the optimized `Dockerfile` and `docker-compose.yaml` needed to run **QwenPaw** on a **Coolify** server with persistent storage, automated networking, and secure memory.
+**Deploy your own private AI Agent in minutes.** This repository provides the
+optimized `Dockerfile` and `docker-compose.yaml` needed to run **QwenPaw** on a
+**Coolify** server with persistent storage, automated networking, and secure
+memory.
 
 ---
 
 ## 🤖 What is QwenPaw?
 
-[QwenPaw](https://github.com/agentscope-ai/QwenPaw) is a powerful, self-hosted personal AI assistant built on the **Agent OS** architecture. It is designed to be your autonomous companion, featuring:
+[QwenPaw](https://github.com/agentscope-ai/QwenPaw) is a powerful, self-hosted
+personal AI assistant built on the **Agent OS** architecture. It is designed to
+be your autonomous companion, featuring:
 
 - **Three-Layer Memory:** Live context, full history, and distilled knowledge (nothing is lost).
 
@@ -20,7 +25,8 @@
 
 ## 🛠️ Why use this Coolify setup?
 
-While QwenPaw is easy to run locally, deploying it on a VPS via **Coolify** gives you a professional-grade AI workstation:
+While QwenPaw is easy to run locally, deploying it on a VPS via **Coolify** gives
+you a professional-grade AI workstation:
 
 - **24/7 Availability:** Your agent handles news digests and report generation while you sleep.
 
@@ -38,7 +44,8 @@ While QwenPaw is easy to run locally, deploying it on a VPS via **Coolify** give
 
 1. **Create a New Resource** in your Coolify dashboard.
 
-1. **Select Public Repository** and paste this repository URL: `https://github.com/YOUR_USERNAME/qwenpaw-coolify-one-click`
+1. **Select Public Repository** and paste this repository URL:
+   `https://github.com/YOUR_USERNAME/qwenpaw-coolify-one-click`
 
 1. **Choose Build Pack:** Select `Dockerfile`.
 
@@ -64,44 +71,76 @@ prioritizes host stability over maximum QwenPaw performance.
 
 Recommended baseline for a 4 GB RAM host:
 
-| Resource | Default | Why |
-| --- | --- | --- |
-| Memory hard limit | `1536m` | Gives local Whisper enough room while still capping QwenPaw below half of a 4 GB host |
-| Memory reservation | `1g` | Lets Docker account for expected memory pressure before the hard limit |
-| Memory plus swap | `1536m` | Prevents swap growth beyond the hard limit and reduces the risk of host swap thrashing |
-| CPU limit | `1.00` | Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail services |
-| PID/process limit | `256` | Stays above QwenPaw/supervisord's 200-process startup requirement while still limiting runaway process creation |
-| `/tmp` limit | `256m` | Provides room for audio/STT temporary files while still preventing unbounded growth |
-| Log retention | `5m` x `2` files | Limits Docker JSON log growth |
-| Linux capabilities | Drop `NET_RAW` only | Keeps the desktop/dbus stack compatible while removing raw socket access |
+- Memory hard limit: `1536m`.
+  Gives local Whisper enough room while still capping QwenPaw below half of the
+  host RAM.
+- Memory reservation: `1g`.
+  Lets Docker account for expected memory pressure before the hard limit.
+- Memory plus swap: `1536m`.
+  Keeps swap equal to the hard limit to reduce host swap thrashing.
+- CPU limit: `1.00`.
+  Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail
+  services.
+- PID/process limit: `256`.
+  Stays above QwenPaw/supervisord's 200-process startup requirement while still
+  limiting runaway process creation.
+- `/tmp` limit: `256m`.
+  Provides room for audio/STT temporary files while still preventing unbounded
+  growth.
+- Log retention: `5m` x `2` files.
+  Limits Docker JSON log growth.
+- Linux capabilities: drop `NET_RAW` only.
+  Keeps the desktop/dbus stack compatible while removing raw socket access.
 
 #### Runtime variables
 
 Configure these in the Coolify UI if the defaults are too strict or too loose:
 
-| Variable | Default | Description | Adjustment guidance |
-| --- | --- | --- | --- |
-| `QWENPAW_CPUS` | `1.00` | Maximum CPU cores available to the container | Lower to `0.50` if the server remains CPU-bound; raise only if the host has spare CPU |
-| `QWENPAW_MEMORY_LIMIT` | `1536m` | Hard memory limit for the container | Use `1g` only for text-only deployments; local Whisper commonly needs more headroom |
-| `QWENPAW_MEMORY_SWAP_LIMIT` | `1536m` | Total memory plus swap allowed to the container | Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing |
-| `QWENPAW_MEMORY_RESERVATION` | `1g` | Soft memory reservation used by Docker scheduling/accounting | Set below the hard limit; `768m` is safer but may reduce responsiveness |
-| `QWENPAW_MEMORY_SWAPPINESS` | `0` | Kernel preference for swapping container memory | Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive |
-| `QWENPAW_PIDS_LIMIT` | `256` | Maximum PIDs inside the container | Keep above `200`; QwenPaw uses supervisord and may fail startup below this |
-| `QWENPAW_NPROC_LIMIT` | `256` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` and above `200` |
-| `QWENPAW_NOFILE_SOFT_LIMIT` | `2048` | Soft open-file limit | Raise if logs show "too many open files" |
-| `QWENPAW_NOFILE_HARD_LIMIT` | `4096` | Hard open-file limit | Keep at or above the soft limit |
-| `QWENPAW_TMPFS_SIZE` | `256m` | Size of the in-memory `/tmp` mount | Raise if uploads, voice processing, or temporary operations fail due to lack of temp space |
-| `QWENPAW_LOG_MAX_SIZE` | `5m` | Maximum size for each Docker JSON log file | Raise only if you need more local log history |
-| `QWENPAW_LOG_MAX_FILE` | `2` | Number of rotated Docker JSON log files to keep | Keep low on small disks |
-| `QWENPAW_TMPDIR` | `/app/working` | Temporary directory used by Python tools and runtime installs | Keep under `/app/working`; the default path always exists because it is the persisted data volume |
-| `QWENPAW_CACHE_HOME` | `/app/working/.cache` | Persistent cache directory for Python/model caches | Keep under `/app/working` to avoid re-downloading voice/STT assets |
-| `QWENPAW_HF_HOME` | `/app/working/.cache/huggingface` | Persistent Hugging Face cache path | Keep under `/app/working` if local Whisper downloads model assets |
-| `QWENPAW_TRANSCRIPTION_PROVIDER_TYPE` | `local_whisper` | Voice transcription provider hint for QwenPaw | Also verify the saved setting in the QwenPaw console |
-| `QWENPAW_OMP_NUM_THREADS` | `1` | OpenMP thread limit for Whisper/numeric libraries | Keep low on small hosts to avoid CPU and memory spikes |
-| `QWENPAW_OPENBLAS_NUM_THREADS` | `1` | OpenBLAS thread limit | Keep low unless the host has spare CPU and RAM |
-| `QWENPAW_MKL_NUM_THREADS` | `1` | MKL thread limit | Keep low unless the host has spare CPU and RAM |
-| `QWENPAW_NUMEXPR_NUM_THREADS` | `1` | NumExpr thread limit | Keep low unless the host has spare CPU and RAM |
-| `QWENPAW_TOKENIZERS_PARALLELISM` | `false` | Disables tokenizer worker fan-out | Keep disabled on small hosts |
+- `QWENPAW_CPUS` default: `1.00`.
+  Lower to `0.50` if the server remains CPU-bound. Raise only if the host has
+  spare CPU.
+- `QWENPAW_MEMORY_LIMIT` default: `1536m`.
+  Use `1g` only for text-only deployments; local Whisper commonly needs more
+  headroom.
+- `QWENPAW_MEMORY_SWAP_LIMIT` default: `1536m`.
+  Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing.
+- `QWENPAW_MEMORY_RESERVATION` default: `1g`.
+  Set below the hard limit. `768m` is safer but may reduce responsiveness.
+- `QWENPAW_MEMORY_SWAPPINESS` default: `0`.
+  Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive.
+- `QWENPAW_PIDS_LIMIT` default: `256`.
+  Keep above `200`; QwenPaw uses supervisord and may fail startup below this.
+- `QWENPAW_NPROC_LIMIT` default: `256`.
+  Keep aligned with `QWENPAW_PIDS_LIMIT` and above `200`.
+- `QWENPAW_NOFILE_SOFT_LIMIT` default: `2048`.
+  Raise if logs show "too many open files".
+- `QWENPAW_NOFILE_HARD_LIMIT` default: `4096`.
+  Keep at or above the soft limit.
+- `QWENPAW_TMPFS_SIZE` default: `256m`.
+  Raise if uploads, voice processing, or temporary operations fail due to lack
+  of temp space.
+- `QWENPAW_LOG_MAX_SIZE` default: `5m`.
+  Raise only if you need more local log history.
+- `QWENPAW_LOG_MAX_FILE` default: `2`.
+  Keep low on small disks.
+- `QWENPAW_TMPDIR` default: `/app/working`.
+  The default path always exists because it is the persisted data volume.
+- `QWENPAW_CACHE_HOME` default: `/app/working/.cache`.
+  Keep under `/app/working` to avoid re-downloading voice/STT assets.
+- `QWENPAW_HF_HOME` default: `/app/working/.cache/huggingface`.
+  Keep under `/app/working` if local Whisper downloads model assets.
+- `QWENPAW_TRANSCRIPTION_PROVIDER_TYPE` default: `local_whisper`.
+  Also verify the saved setting in the QwenPaw console.
+- `QWENPAW_OMP_NUM_THREADS` default: `1`.
+  Keep low on small hosts to avoid CPU and memory spikes.
+- `QWENPAW_OPENBLAS_NUM_THREADS` default: `1`.
+  Keep low unless the host has spare CPU and RAM.
+- `QWENPAW_MKL_NUM_THREADS` default: `1`.
+  Keep low unless the host has spare CPU and RAM.
+- `QWENPAW_NUMEXPR_NUM_THREADS` default: `1`.
+  Keep low unless the host has spare CPU and RAM.
+- `QWENPAW_TOKENIZERS_PARALLELISM` default: `false`.
+  Keep disabled on small hosts.
 
 #### Native Telegram voice transcription
 
@@ -136,9 +175,20 @@ across normal Coolify redeploys because `/app/working` is mounted as the
 `qwenpaw-secrets`, or `qwenpaw-backups` volumes unless you intend to reset the
 instance.
 
-TTS responses remain handled by QwenPaw's native skill/configuration layer. Keep
-the TTS credentials and provider settings in the QwenPaw console or persisted
-configuration, not in temporary paths.
+#### Native Telegram TTS
+
+This image also installs `edge-tts`, a lightweight Python library that uses
+Microsoft Edge neural voices to convert text into speech. It does not require an
+API key, paid cloud account, or GPU.
+
+QwenPaw can use `edge-tts` through its native `tts` skill/configuration layer to
+send audio replies back to Telegram. Keep TTS provider settings in the QwenPaw
+console or persisted configuration, not in temporary paths.
+
+`edge-tts` supports many Microsoft neural voice locales. For Brazilian
+Portuguese, use `pt-BR-FranciscaNeural` as the recommended voice. Other
+languages can be configured with the matching Edge neural voice name for that
+locale.
 
 #### Operational notes
 
@@ -181,7 +231,8 @@ If this deployment tool saved you time or helped you build your AI assistant, co
 
 ## 🌟 Star the Repo
 
-If you find this useful, please give it a **Star**! It helps the project grow and makes it easier for other developers to find this self-hosted AI solution.
+If you find this useful, please give it a **Star**! It helps the project grow and
+makes it easier for other developers to find this self-hosted AI solution.
 
 ---
 

@@ -16,9 +16,9 @@ services:
     container_name: qwenpaw
     restart: unless-stopped
     cpus: "${QWENPAW_CPUS:-1.00}"
-    mem_limit: "${QWENPAW_MEMORY_LIMIT:-1g}"
-    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-1g}"
-    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-768m}"
+    mem_limit: "${QWENPAW_MEMORY_LIMIT:-1536m}"
+    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-1536m}"
+    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-1g}"
     mem_swappiness: ${QWENPAW_MEMORY_SWAPPINESS:-0}
     pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
     oom_kill_disable: false
@@ -42,6 +42,11 @@ services:
       - XDG_CACHE_HOME=${QWENPAW_CACHE_HOME:-/app/working/.cache}
       - HF_HOME=${QWENPAW_HF_HOME:-/app/working/.cache/huggingface}
       - transcription_provider_type=${QWENPAW_TRANSCRIPTION_PROVIDER_TYPE:-local_whisper}
+      - OMP_NUM_THREADS=${QWENPAW_OMP_NUM_THREADS:-1}
+      - OPENBLAS_NUM_THREADS=${QWENPAW_OPENBLAS_NUM_THREADS:-1}
+      - MKL_NUM_THREADS=${QWENPAW_MKL_NUM_THREADS:-1}
+      - NUMEXPR_NUM_THREADS=${QWENPAW_NUMEXPR_NUM_THREADS:-1}
+      - TOKENIZERS_PARALLELISM=${QWENPAW_TOKENIZERS_PARALLELISM:-false}
     volumes:
       - qwenpaw-data:/app/working
       - qwenpaw-secrets:/app/working.secret

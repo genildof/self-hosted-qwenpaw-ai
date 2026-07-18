@@ -66,9 +66,9 @@ Recommended baseline for a 4 GB RAM host:
 
 | Resource | Default | Why |
 | --- | --- | --- |
-| Memory hard limit | `1g` | Prevents QwenPaw from consuming the remaining host memory |
-| Memory reservation | `768m` | Lets Docker account for expected memory pressure before the hard limit |
-| Memory plus swap | `1g` | Prevents swap growth and reduces the risk of swap thrashing |
+| Memory hard limit | `1536m` | Gives local Whisper enough room while still capping QwenPaw below half of a 4 GB host |
+| Memory reservation | `1g` | Lets Docker account for expected memory pressure before the hard limit |
+| Memory plus swap | `1536m` | Prevents swap growth beyond the hard limit and reduces the risk of host swap thrashing |
 | CPU limit | `1.00` | Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail services |
 | PID/process limit | `256` | Stays above QwenPaw/supervisord's 200-process startup requirement while still limiting runaway process creation |
 | `/tmp` limit | `256m` | Provides room for audio/STT temporary files while still preventing unbounded growth |
@@ -82,9 +82,9 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 | Variable | Default | Description | Adjustment guidance |
 | --- | --- | --- | --- |
 | `QWENPAW_CPUS` | `1.00` | Maximum CPU cores available to the container | Lower to `0.50` if the server remains CPU-bound; raise only if the host has spare CPU |
-| `QWENPAW_MEMORY_LIMIT` | `1g` | Hard memory limit for the container | Keep near `1g` on 4 GB hosts; raise to `1536m` only if the host has free memory |
-| `QWENPAW_MEMORY_SWAP_LIMIT` | `1g` | Total memory plus swap allowed to the container | Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing |
-| `QWENPAW_MEMORY_RESERVATION` | `768m` | Soft memory reservation used by Docker scheduling/accounting | Set below the hard limit; `512m` is safer but may reduce responsiveness |
+| `QWENPAW_MEMORY_LIMIT` | `1536m` | Hard memory limit for the container | Use `1g` only for text-only deployments; local Whisper commonly needs more headroom |
+| `QWENPAW_MEMORY_SWAP_LIMIT` | `1536m` | Total memory plus swap allowed to the container | Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing |
+| `QWENPAW_MEMORY_RESERVATION` | `1g` | Soft memory reservation used by Docker scheduling/accounting | Set below the hard limit; `768m` is safer but may reduce responsiveness |
 | `QWENPAW_MEMORY_SWAPPINESS` | `0` | Kernel preference for swapping container memory | Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive |
 | `QWENPAW_PIDS_LIMIT` | `256` | Maximum PIDs inside the container | Keep above `200`; QwenPaw uses supervisord and may fail startup below this |
 | `QWENPAW_NPROC_LIMIT` | `256` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` and above `200` |
@@ -97,6 +97,11 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 | `QWENPAW_CACHE_HOME` | `/app/working/.cache` | Persistent cache directory for Python/model caches | Keep under `/app/working` to avoid re-downloading voice/STT assets |
 | `QWENPAW_HF_HOME` | `/app/working/.cache/huggingface` | Persistent Hugging Face cache path | Keep under `/app/working` if local Whisper downloads model assets |
 | `QWENPAW_TRANSCRIPTION_PROVIDER_TYPE` | `local_whisper` | Voice transcription provider hint for QwenPaw | Also verify the saved setting in the QwenPaw console |
+| `QWENPAW_OMP_NUM_THREADS` | `1` | OpenMP thread limit for Whisper/numeric libraries | Keep low on small hosts to avoid CPU and memory spikes |
+| `QWENPAW_OPENBLAS_NUM_THREADS` | `1` | OpenBLAS thread limit | Keep low unless the host has spare CPU and RAM |
+| `QWENPAW_MKL_NUM_THREADS` | `1` | MKL thread limit | Keep low unless the host has spare CPU and RAM |
+| `QWENPAW_NUMEXPR_NUM_THREADS` | `1` | NumExpr thread limit | Keep low unless the host has spare CPU and RAM |
+| `QWENPAW_TOKENIZERS_PARALLELISM` | `false` | Disables tokenizer worker fan-out | Keep disabled on small hosts |
 
 #### Native Telegram voice transcription
 
@@ -115,6 +120,8 @@ What is included in this repository:
 - `TMPDIR`, `XDG_CACHE_HOME`, and `HF_HOME` point under `/app/working`, which is
   persisted by the `qwenpaw-data` Docker volume.
 - `/tmp` is raised to `256m` for audio processing and temporary files.
+- Numeric/ML thread pools are limited to one thread by default to reduce memory
+  and CPU spikes during local Whisper transcription.
 
 After deployment, verify the native setting in the QwenPaw console:
 
@@ -138,9 +145,14 @@ configuration, not in temporary paths.
 - If the host starts using heavy swap after QwenPaw is deployed, do not raise
   `QWENPAW_MEMORY_SWAP_LIMIT`. Lower `QWENPAW_CPUS`, keep memory plus swap equal
   to the memory limit, and check which other services are consuming RAM.
-- If QwenPaw is killed or restarted under normal use, raise
-  `QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in small steps,
-  for example from `1g` to `1280m`.
+- If QwenPaw is killed or restarted under normal voice use, raise
+  `QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in small steps
+  above the default, for example from `1536m` to `1792m`.
+- If logs show `app (terminated by SIGKILL; not expected)` after the service has
+  started, treat it as a container memory-limit kill first. For local Whisper,
+  keep the default `1536m`; if the host still has free memory, raise in small
+  steps such as `1792m`. Do not allow extra swap unless you accept slower
+  failover instead of a fast container restart.
 - If QwenPaw fails with a `supervisord` `minprocs` error, keep
   `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`. Lower values can
   prevent the container from starting.

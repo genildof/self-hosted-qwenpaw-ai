@@ -58,22 +58,56 @@ You can configure these in the Coolify UI before or after deployment:
 
 ### Coolify resource limits
 
-The Compose file ships with conservative runtime limits so QwenPaw cannot starve
-the Coolify host:
+The Compose file is tuned for small servers where Coolify, Traefik, databases,
+mail services, and other containers are already running. The default profile
+prioritizes host stability over maximum QwenPaw performance.
 
-| Variable | Default | Description |
+Recommended baseline for a 4 GB RAM host:
+
+| Resource | Default | Why |
 | --- | --- | --- |
-| `QWENPAW_CPUS` | `1.50` | Maximum CPU cores available to the container |
-| `QWENPAW_MEMORY_LIMIT` | `2g` | Container memory limit |
-| `QWENPAW_MEMORY_SWAP_LIMIT` | `2g` | Total memory plus swap; keep equal to memory to avoid swap growth |
-| `QWENPAW_PIDS_LIMIT` | `256` | Maximum processes/threads inside the container |
-| `QWENPAW_LOG_MAX_SIZE` | `10m` | Maximum size for each container log file |
-| `QWENPAW_LOG_MAX_FILE` | `3` | Number of rotated log files to keep |
+| Memory hard limit | `1g` | Prevents QwenPaw from consuming the remaining host memory |
+| Memory reservation | `768m` | Lets Docker account for expected memory pressure before the hard limit |
+| Memory plus swap | `1g` | Prevents swap growth and reduces the risk of swap thrashing |
+| CPU limit | `1.00` | Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail services |
+| PID/process limit | `128` | Prevents runaway thread/process creation from degrading the host |
+| `/tmp` limit | `64m` | Prevents temporary files from growing without bound |
+| Log retention | `5m` x `2` files | Limits Docker JSON log growth |
 
-If QwenPaw is killed by the OOM killer during heavy use, raise
-`QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in Coolify. On
-small VPS instances, keep swap equal to the memory limit and reduce
-`QWENPAW_CPUS` before adding other workloads to the same server.
+#### Runtime variables
+
+Configure these in the Coolify UI if the defaults are too strict or too loose:
+
+| Variable | Default | Description | Adjustment guidance |
+| --- | --- | --- | --- |
+| `QWENPAW_CPUS` | `1.00` | Maximum CPU cores available to the container | Lower to `0.50` if the server remains CPU-bound; raise only if the host has spare CPU |
+| `QWENPAW_MEMORY_LIMIT` | `1g` | Hard memory limit for the container | Keep near `1g` on 4 GB hosts; raise to `1536m` only if the host has free memory |
+| `QWENPAW_MEMORY_SWAP_LIMIT` | `1g` | Total memory plus swap allowed to the container | Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing |
+| `QWENPAW_MEMORY_RESERVATION` | `768m` | Soft memory reservation used by Docker scheduling/accounting | Set below the hard limit; `512m` is safer but may reduce responsiveness |
+| `QWENPAW_MEMORY_SWAPPINESS` | `0` | Kernel preference for swapping container memory | Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive |
+| `QWENPAW_PIDS_LIMIT` | `128` | Maximum PIDs inside the container | Raise to `256` only if QwenPaw fails because it needs more workers/threads |
+| `QWENPAW_NPROC_LIMIT` | `128` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` |
+| `QWENPAW_NOFILE_SOFT_LIMIT` | `2048` | Soft open-file limit | Raise if logs show "too many open files" |
+| `QWENPAW_NOFILE_HARD_LIMIT` | `4096` | Hard open-file limit | Keep at or above the soft limit |
+| `QWENPAW_TMPFS_SIZE` | `64m` | Size of the in-memory `/tmp` mount | Raise if uploads or temporary operations fail due to lack of temp space |
+| `QWENPAW_LOG_MAX_SIZE` | `5m` | Maximum size for each Docker JSON log file | Raise only if you need more local log history |
+| `QWENPAW_LOG_MAX_FILE` | `2` | Number of rotated Docker JSON log files to keep | Keep low on small disks |
+
+#### Operational notes
+
+- If the host starts using heavy swap after QwenPaw is deployed, do not raise
+  `QWENPAW_MEMORY_SWAP_LIMIT`. Lower `QWENPAW_CPUS`, keep memory plus swap equal
+  to the memory limit, and check which other services are consuming RAM.
+- If QwenPaw is killed or restarted under normal use, raise
+  `QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in small steps,
+  for example from `1g` to `1280m`.
+- If QwenPaw fails during startup, check whether `cap_drop: ALL`, the `/tmp`
+  tmpfs limit, or the PID limits are too restrictive for the current upstream
+  image.
+- The `latest` image tag is convenient but can change memory behavior without a
+  Compose change. For production, pin a tested image tag or digest.
+- Keep `QWENPAW_AUTH_ENABLED=true` when the service is exposed outside a private
+  network such as Tailscale or a protected Coolify/Traefik route.
 
 ---
 

@@ -1,5 +1,3 @@
-version: "3.8"
-
 volumes:
   qwenpaw-data:
     name: qwenpaw-data
@@ -13,13 +11,26 @@ services:
     image: agentscope/qwenpaw:latest
     init: true
     container_name: qwenpaw
-    restart: always
-    cpus: "${QWENPAW_CPUS:-1.50}"
-    mem_limit: "${QWENPAW_MEMORY_LIMIT:-2g}"
-    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-2g}"
-    pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
+    restart: unless-stopped
+    cpus: "${QWENPAW_CPUS:-1.00}"
+    mem_limit: "${QWENPAW_MEMORY_LIMIT:-1g}"
+    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-1g}"
+    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-768m}"
+    mem_swappiness: ${QWENPAW_MEMORY_SWAPPINESS:-0}
+    pids_limit: ${QWENPAW_PIDS_LIMIT:-128}
     oom_kill_disable: false
     stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ulimits:
+      nproc: ${QWENPAW_NPROC_LIMIT:-128}
+      nofile:
+        soft: ${QWENPAW_NOFILE_SOFT_LIMIT:-2048}
+        hard: ${QWENPAW_NOFILE_HARD_LIMIT:-4096}
+    tmpfs:
+      - /tmp:size=${QWENPAW_TMPFS_SIZE:-64m},mode=1777
     ports:
       - "8088:8088"
     environment:
@@ -32,12 +43,12 @@ services:
       - qwenpaw-backups:/app/working.backups
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8088/"]
-      interval: 30s
+      interval: 60s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 60s
     logging:
       driver: json-file
       options:
-        max-size: "${QWENPAW_LOG_MAX_SIZE:-10m}"
-        max-file: "${QWENPAW_LOG_MAX_FILE:-3}"
+        max-size: "${QWENPAW_LOG_MAX_SIZE:-5m}"
+        max-file: "${QWENPAW_LOG_MAX_FILE:-2}"

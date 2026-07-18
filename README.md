@@ -73,6 +73,7 @@ Recommended baseline for a 4 GB RAM host:
 | PID/process limit | `256` | Stays above QwenPaw/supervisord's 200-process startup requirement while still limiting runaway process creation |
 | `/tmp` limit | `64m` | Prevents temporary files from growing without bound |
 | Log retention | `5m` x `2` files | Limits Docker JSON log growth |
+| Linux capabilities | Drop `NET_RAW` only | Keeps the desktop/dbus stack compatible while removing raw socket access |
 
 #### Runtime variables
 
@@ -104,9 +105,12 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 - If QwenPaw fails with a `supervisord` `minprocs` error, keep
   `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`. Lower values can
   prevent the container from starting.
-- If QwenPaw fails during startup, check whether `cap_drop: ALL`, the `/tmp`
-  tmpfs limit, or the PID limits are too restrictive for the current upstream
-  image.
+- The image starts a headless desktop stack (`xvfb`, `xfce4`, and `dbus`).
+  Avoid `cap_drop: ALL`; it can remove capabilities required by `dbus` and cause
+  repeated `exited: dbus (exit status 1)` errors. This Compose file drops only
+  `NET_RAW` as a safer compatibility baseline.
+- If QwenPaw fails during startup, check whether the `/tmp` tmpfs limit or the
+  PID limits are too restrictive for the current upstream image.
 - The `latest` image tag is convenient but can change memory behavior without a
   Compose change. For production, pin a tested image tag or digest.
 - Keep `QWENPAW_AUTH_ENABLED=true` when the service is exposed outside a private

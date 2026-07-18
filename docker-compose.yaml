@@ -20,10 +20,8 @@ services:
     pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
     oom_kill_disable: false
     stop_grace_period: 30s
-    security_opt:
-      - no-new-privileges:true
     cap_drop:
-      - ALL
+      - NET_RAW
     ulimits:
       nproc: ${QWENPAW_NPROC_LIMIT:-256}
       nofile:

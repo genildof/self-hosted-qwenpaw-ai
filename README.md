@@ -71,12 +71,12 @@ prioritizes host stability over maximum QwenPaw performance.
 
 Recommended baseline for a 4 GB RAM host:
 
-- Memory hard limit: `1536m`.
+- Memory hard limit: `1792m`.
   Gives local Whisper enough room while still capping QwenPaw below half of the
   host RAM.
-- Memory reservation: `1g`.
+- Memory reservation: `1280m`.
   Lets Docker account for expected memory pressure before the hard limit.
-- Memory plus swap: `1536m`.
+- Memory plus swap: `1792m`.
   Keeps swap equal to the hard limit to reduce host swap thrashing.
 - CPU limit: `1.00`.
   Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail
@@ -99,13 +99,13 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 - `QWENPAW_CPUS` default: `1.00`.
   Lower to `0.50` if the server remains CPU-bound. Raise only if the host has
   spare CPU.
-- `QWENPAW_MEMORY_LIMIT` default: `1536m`.
+- `QWENPAW_MEMORY_LIMIT` default: `1792m`.
   Use `1g` only for text-only deployments; local Whisper commonly needs more
   headroom.
-- `QWENPAW_MEMORY_SWAP_LIMIT` default: `1536m`.
+- `QWENPAW_MEMORY_SWAP_LIMIT` default: `1792m`.
   Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing.
-- `QWENPAW_MEMORY_RESERVATION` default: `1g`.
-  Set below the hard limit. `768m` is safer but may reduce responsiveness.
+- `QWENPAW_MEMORY_RESERVATION` default: `1280m`.
+  Set below the hard limit. `1g` is safer but may reduce responsiveness.
 - `QWENPAW_MEMORY_SWAPPINESS` default: `0`.
   Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive.
 - `QWENPAW_PIDS_LIMIT` default: `256`.
@@ -197,12 +197,12 @@ locale.
   to the memory limit, and check which other services are consuming RAM.
 - If QwenPaw is killed or restarted under normal voice use, raise
   `QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in small steps
-  above the default, for example from `1536m` to `1792m`.
+  above the default, for example from `1792m` to `2g`.
 - If logs show `app (terminated by SIGKILL; not expected)` after the service has
   started, treat it as a container memory-limit kill first. For local Whisper,
-  keep the default `1536m`; if the host still has free memory, raise in small
-  steps such as `1792m`. Do not allow extra swap unless you accept slower
-  failover instead of a fast container restart.
+  keep the default `1792m`; if the host still has free memory, raise in small
+  steps such as `2g`. Do not allow extra swap unless you accept slower failover
+  instead of a fast container restart.
 - If QwenPaw fails with a `supervisord` `minprocs` error, keep
   `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`. Lower values can
   prevent the container from starting.

@@ -11,13 +11,6 @@ USER root
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* || \
     (apk add --no-cache curl)
 
-# Instalar suporte nativo a Whisper para STT e edge-tts para TTS no Telegram.
-RUN if [ -x /app/venv/bin/pip ]; then \
-      /app/venv/bin/pip install --no-cache-dir "qwenpaw[whisper]" edge-tts; \
-    else \
-      python -m pip install --no-cache-dir "qwenpaw[whisper]" edge-tts; \
-    fi
-
 # Portas expostas pelo QwenPaw
 EXPOSE 8088
 

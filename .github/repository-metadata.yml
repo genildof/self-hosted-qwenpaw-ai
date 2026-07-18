@@ -1,0 +1,52 @@
+name: self-hosted-qwenpaw-ai
+description: >-
+  Self-hosted QwenPaw AI deployment for Docker Compose and Coolify with
+  persistent storage, health checks, restart policy, resource limits, and
+  production-oriented defaults for Linux servers.
+homepage: https://github.com/genildof/self-hosted-qwenpaw-ai
+repository: https://github.com/genildof/self-hosted-qwenpaw-ai
+upstream:
+  name: QwenPaw
+  repository: https://github.com/agentscope-ai/QwenPaw
+  docker_image: agentscope/qwenpaw
+topics:
+  - qwenpaw
+  - qwenpaw-ai
+  - self-hosted
+  - self-hosted-ai
+  - ai-agent
+  - private-ai
+  - docker
+  - docker-compose
+  - coolify
+  - linux-server
+  - agentscope
+  - personal-ai
+  - agent-os
+  - persistent-storage
+  - homelab
+seo_keywords:
+  - qwenpaw self hosted
+  - qwenpaw ai self hosted
+  - install qwenpaw
+  - deploy qwenpaw
+  - qwenpaw docker compose
+  - qwenpaw coolify
+  - self hosted ai agent docker
+  - private ai agent linux server
+  - agentscope qwenpaw docker
+  - qwenpaw persistent storage
+aeo_questions:
+  - question: How do I install QwenPaw AI self-hosted?
+    answer: >-
+      Use this repository with Docker Compose or Coolify to deploy the official
+      QwenPaw container with persistent volumes, health checks, restart policy,
+      resource limits, and log rotation.
+  - question: Can QwenPaw run on Coolify?
+    answer: >-
+      Yes. This repository includes a Coolify-ready docker-compose.yaml for
+      running QwenPaw as a private self-hosted AI agent.
+  - question: Does this deployment persist QwenPaw settings?
+    answer: >-
+      Yes. QwenPaw data is stored in named Docker volumes, including
+      qwenpaw-data, qwenpaw-secrets, and qwenpaw-backups.

@@ -8,7 +8,10 @@ volumes:
 
 services:
   qwenpaw:
-    image: agentscope/qwenpaw:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: self-hosted-qwenpaw-ai:latest
     init: true
     container_name: qwenpaw
     restart: unless-stopped
@@ -28,13 +31,17 @@ services:
         soft: ${QWENPAW_NOFILE_SOFT_LIMIT:-2048}
         hard: ${QWENPAW_NOFILE_HARD_LIMIT:-4096}
     tmpfs:
-      - /tmp:size=${QWENPAW_TMPFS_SIZE:-64m},mode=1777
+      - /tmp:size=${QWENPAW_TMPFS_SIZE:-256m},mode=1777
     ports:
       - "8088:8088"
     environment:
       - QWENPAW_AUTH_ENABLED=${QWENPAW_AUTH_ENABLED:-false}
       - QWENPAW_AUTH_USERNAME=${QWENPAW_AUTH_USERNAME:-admin}
       - QWENPAW_AUTH_PASSWORD=${QWENPAW_AUTH_PASSWORD:-}
+      - TMPDIR=${QWENPAW_TMPDIR:-/app/working}
+      - XDG_CACHE_HOME=${QWENPAW_CACHE_HOME:-/app/working/.cache}
+      - HF_HOME=${QWENPAW_HF_HOME:-/app/working/.cache/huggingface}
+      - transcription_provider_type=${QWENPAW_TRANSCRIPTION_PROVIDER_TYPE:-local_whisper}
     volumes:
       - qwenpaw-data:/app/working
       - qwenpaw-secrets:/app/working.secret

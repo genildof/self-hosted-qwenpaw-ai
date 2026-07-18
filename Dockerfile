@@ -11,6 +11,13 @@ USER root
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* || \
     (apk add --no-cache curl)
 
+# Instalar suporte nativo a Whisper para STT no Telegram.
+RUN if [ -x /app/venv/bin/pip ]; then \
+      /app/venv/bin/pip install --no-cache-dir "qwenpaw[whisper]"; \
+    else \
+      python -m pip install --no-cache-dir "qwenpaw[whisper]"; \
+    fi
+
 # Portas expostas pelo QwenPaw
 EXPOSE 8088
 

@@ -71,7 +71,7 @@ Recommended baseline for a 4 GB RAM host:
 | Memory plus swap | `1g` | Prevents swap growth and reduces the risk of swap thrashing |
 | CPU limit | `1.00` | Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail services |
 | PID/process limit | `256` | Stays above QwenPaw/supervisord's 200-process startup requirement while still limiting runaway process creation |
-| `/tmp` limit | `64m` | Prevents temporary files from growing without bound |
+| `/tmp` limit | `256m` | Provides room for audio/STT temporary files while still preventing unbounded growth |
 | Log retention | `5m` x `2` files | Limits Docker JSON log growth |
 | Linux capabilities | Drop `NET_RAW` only | Keeps the desktop/dbus stack compatible while removing raw socket access |
 
@@ -90,9 +90,48 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 | `QWENPAW_NPROC_LIMIT` | `256` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` and above `200` |
 | `QWENPAW_NOFILE_SOFT_LIMIT` | `2048` | Soft open-file limit | Raise if logs show "too many open files" |
 | `QWENPAW_NOFILE_HARD_LIMIT` | `4096` | Hard open-file limit | Keep at or above the soft limit |
-| `QWENPAW_TMPFS_SIZE` | `64m` | Size of the in-memory `/tmp` mount | Raise if uploads or temporary operations fail due to lack of temp space |
+| `QWENPAW_TMPFS_SIZE` | `256m` | Size of the in-memory `/tmp` mount | Raise if uploads, voice processing, or temporary operations fail due to lack of temp space |
 | `QWENPAW_LOG_MAX_SIZE` | `5m` | Maximum size for each Docker JSON log file | Raise only if you need more local log history |
 | `QWENPAW_LOG_MAX_FILE` | `2` | Number of rotated Docker JSON log files to keep | Keep low on small disks |
+| `QWENPAW_TMPDIR` | `/app/working` | Temporary directory used by Python tools and runtime installs | Keep under `/app/working`; the default path always exists because it is the persisted data volume |
+| `QWENPAW_CACHE_HOME` | `/app/working/.cache` | Persistent cache directory for Python/model caches | Keep under `/app/working` to avoid re-downloading voice/STT assets |
+| `QWENPAW_HF_HOME` | `/app/working/.cache/huggingface` | Persistent Hugging Face cache path | Keep under `/app/working` if local Whisper downloads model assets |
+| `QWENPAW_TRANSCRIPTION_PROVIDER_TYPE` | `local_whisper` | Voice transcription provider hint for QwenPaw | Also verify the saved setting in the QwenPaw console |
+
+#### Native Telegram voice transcription
+
+This deployment uses QwenPaw's native voice transcription path instead of a
+custom file watcher or skill workaround.
+
+What is included in this repository:
+
+- The Dockerfile extends the official QwenPaw image and installs
+  `qwenpaw[whisper]` at build time. This makes the local Whisper backend
+  available after every Coolify rebuild.
+- The Compose service uses `build.context: .`, so Coolify builds this custom
+  image instead of running the unmodified upstream image.
+- `transcription_provider_type=local_whisper` is set in the container
+  environment as a default provider hint.
+- `TMPDIR`, `XDG_CACHE_HOME`, and `HF_HOME` point under `/app/working`, which is
+  persisted by the `qwenpaw-data` Docker volume.
+- `/tmp` is raised to `256m` for audio processing and temporary files.
+
+After deployment, verify the native setting in the QwenPaw console:
+
+| Setting | Value |
+| --- | --- |
+| Settings -> Voice transcription -> Audio mode | `Auto` |
+| Settings -> Voice transcription -> Transcription backend | `Local Whisper` |
+
+If QwenPaw saves these settings to `/app/working/config.json`, they persist
+across normal Coolify redeploys because `/app/working` is mounted as the
+`qwenpaw-data` named volume. Do not delete or recreate the `qwenpaw-data`,
+`qwenpaw-secrets`, or `qwenpaw-backups` volumes unless you intend to reset the
+instance.
+
+TTS responses remain handled by QwenPaw's native skill/configuration layer. Keep
+the TTS credentials and provider settings in the QwenPaw console or persisted
+configuration, not in temporary paths.
 
 #### Operational notes
 

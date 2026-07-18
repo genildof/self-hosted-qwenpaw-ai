@@ -8,8 +8,8 @@
   <h1>Self-Hosted QwenPaw AI</h1>
 
   <p>
-    Coolify-ready QwenPaw deployment with persistent storage, Telegram voice
-    support, and conservative limits for small Linux servers.
+    Coolify-ready QwenPaw deployment with persistent storage, operational
+    defaults, and conservative limits for small Linux servers.
   </p>
 
   <p>
@@ -25,7 +25,7 @@
 
   <p>
     <a href="#quick-start">Quick Start</a> •
-    <a href="#voice-profile">Voice Profile</a> •
+    <a href="#deployment-profile">Deployment Profile</a> •
     <a href="#resource-profile">Resource Profile</a> •
     <a href="#persistence">Persistence</a> •
     <a href="#credits">Credits</a>
@@ -57,8 +57,7 @@ stability over maximum QwenPaw throughput.
 - Persistent QwenPaw data, secrets, backups, temporary files, and runtime cache.
 - Docker resource limits for low-memory servers.
 - Log rotation to prevent Docker JSON logs from growing without bound.
-- Compatibility fixes for QwenPaw's `xvfb`, `xfce4`, `dbus`, and `supervisord`
-  runtime stack.
+- Container settings compatible with QwenPaw's desktop/headless runtime stack.
 
 ## Quick Start
 
@@ -77,14 +76,20 @@ Recommended authentication variables:
 | `QWENPAW_AUTH_USERNAME` | `admin` | Console login username. |
 | `QWENPAW_AUTH_PASSWORD` | empty | Required when authentication is enabled. |
 
-## Voice Profile
+## Deployment Profile
 
-The default Compose profile does not enable STT/TTS-specific runtime settings.
-This keeps the deployment lightweight and avoids memory spikes from local
-transcription or speech synthesis on small hosts.
+The default Compose profile runs the official QwenPaw image directly and keeps
+runtime settings focused on a stable, lightweight deployment.
 
-Voice features can still be configured later through QwenPaw itself or a custom
-image, but they are intentionally not enabled in this Compose file.
+This makes the repository a clean baseline for:
+
+- private QwenPaw workspaces;
+- persistent agent memory and configuration;
+- Coolify-managed networking and redeploys;
+- controlled CPU, memory, process, and log usage.
+
+Additional QwenPaw capabilities can be configured in the QwenPaw console or by
+building a custom image when a deployment needs extra Python packages.
 
 ## Resource Profile
 
@@ -142,33 +147,22 @@ QwenPaw logs show that configuration is saved under:
 ```
 
 Because `/app/working` is persisted, normal Coolify redeploys should keep the
-QwenPaw console settings, voice configuration, workspaces, memory, and caches.
+QwenPaw console settings, workspaces, memory, and runtime cache.
 Do not delete or recreate the named volumes unless you intend to reset the
 instance.
 
-## Troubleshooting
+## Operational Notes
 
-### `app (terminated by SIGKILL; not expected)`
-
-Treat this as a container memory-limit kill first.
-
-The current default is `1300m`. If `SIGKILL` still appears:
-
-1. Check host RAM and swap while QwenPaw is under normal use.
-2. Confirm Coolify is using the latest `main` deployment.
-3. Keep `QWENPAW_MEMORY_SWAP_LIMIT` equal to `QWENPAW_MEMORY_LIMIT`.
-4. Raise the memory limit only if the host still has available RAM.
-
-### `supervisord minprocs`
-
-Keep `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`. Lower values
-can prevent QwenPaw from starting.
-
-### `dbus exited status 1`
-
-The image starts a headless desktop stack with `xvfb`, `xfce4`, and `dbus`.
-Avoid `cap_drop: ALL`; it can remove capabilities needed by `dbus`. This
-deployment drops only `NET_RAW`.
+- Keep `QWENPAW_MEMORY_SWAP_LIMIT` equal to `QWENPAW_MEMORY_LIMIT` to avoid
+  uncontrolled swap usage.
+- Keep `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`, which leaves
+  enough process headroom for QwenPaw's runtime services.
+- Use the QwenPaw console for provider, channel, workspace, and agent settings.
+  Those settings are persisted under the `qwenpaw-data` volume.
+- Keep the named Docker volumes when redeploying through Coolify. Recreating the
+  volumes resets the instance.
+- Pin the upstream QwenPaw image tag or digest if you need fully reproducible
+  production deployments.
 
 ## Credits
 

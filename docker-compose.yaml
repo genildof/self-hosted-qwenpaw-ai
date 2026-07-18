@@ -16,9 +16,9 @@ services:
     container_name: qwenpaw
     restart: unless-stopped
     cpus: "${QWENPAW_CPUS:-1.00}"
-    mem_limit: "${QWENPAW_MEMORY_LIMIT:-1792m}"
-    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-1792m}"
-    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-1280m}"
+    mem_limit: "${QWENPAW_MEMORY_LIMIT:-2g}"
+    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-2g}"
+    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-1536m}"
     mem_swappiness: ${QWENPAW_MEMORY_SWAPPINESS:-0}
     pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
     oom_kill_disable: false

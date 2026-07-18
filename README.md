@@ -70,7 +70,7 @@ Recommended baseline for a 4 GB RAM host:
 | Memory reservation | `768m` | Lets Docker account for expected memory pressure before the hard limit |
 | Memory plus swap | `1g` | Prevents swap growth and reduces the risk of swap thrashing |
 | CPU limit | `1.00` | Leaves CPU time available for Coolify, Traefik, PostgreSQL, Redis, and mail services |
-| PID/process limit | `128` | Prevents runaway thread/process creation from degrading the host |
+| PID/process limit | `256` | Stays above QwenPaw/supervisord's 200-process startup requirement while still limiting runaway process creation |
 | `/tmp` limit | `64m` | Prevents temporary files from growing without bound |
 | Log retention | `5m` x `2` files | Limits Docker JSON log growth |
 
@@ -85,8 +85,8 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 | `QWENPAW_MEMORY_SWAP_LIMIT` | `1g` | Total memory plus swap allowed to the container | Keep equal to `QWENPAW_MEMORY_LIMIT` to avoid swap thrashing |
 | `QWENPAW_MEMORY_RESERVATION` | `768m` | Soft memory reservation used by Docker scheduling/accounting | Set below the hard limit; `512m` is safer but may reduce responsiveness |
 | `QWENPAW_MEMORY_SWAPPINESS` | `0` | Kernel preference for swapping container memory | Keep `0` on small hosts to avoid Docker/Coolify becoming unresponsive |
-| `QWENPAW_PIDS_LIMIT` | `128` | Maximum PIDs inside the container | Raise to `256` only if QwenPaw fails because it needs more workers/threads |
-| `QWENPAW_NPROC_LIMIT` | `128` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` |
+| `QWENPAW_PIDS_LIMIT` | `256` | Maximum PIDs inside the container | Keep above `200`; QwenPaw uses supervisord and may fail startup below this |
+| `QWENPAW_NPROC_LIMIT` | `256` | Process limit exposed through Linux ulimit | Keep aligned with `QWENPAW_PIDS_LIMIT` and above `200` |
 | `QWENPAW_NOFILE_SOFT_LIMIT` | `2048` | Soft open-file limit | Raise if logs show "too many open files" |
 | `QWENPAW_NOFILE_HARD_LIMIT` | `4096` | Hard open-file limit | Keep at or above the soft limit |
 | `QWENPAW_TMPFS_SIZE` | `64m` | Size of the in-memory `/tmp` mount | Raise if uploads or temporary operations fail due to lack of temp space |
@@ -101,6 +101,9 @@ Configure these in the Coolify UI if the defaults are too strict or too loose:
 - If QwenPaw is killed or restarted under normal use, raise
   `QWENPAW_MEMORY_LIMIT` and `QWENPAW_MEMORY_SWAP_LIMIT` together in small steps,
   for example from `1g` to `1280m`.
+- If QwenPaw fails with a `supervisord` `minprocs` error, keep
+  `QWENPAW_PIDS_LIMIT` and `QWENPAW_NPROC_LIMIT` above `200`. Lower values can
+  prevent the container from starting.
 - If QwenPaw fails during startup, check whether `cap_drop: ALL`, the `/tmp`
   tmpfs limit, or the PID limits are too restrictive for the current upstream
   image.

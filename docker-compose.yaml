@@ -8,17 +8,14 @@ volumes:
 
 services:
   qwenpaw:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: self-hosted-qwenpaw-ai:latest
+    image: agentscope/qwenpaw:latest
     init: true
     container_name: qwenpaw
     restart: unless-stopped
     cpus: "${QWENPAW_CPUS:-1.00}"
-    mem_limit: "${QWENPAW_MEMORY_LIMIT:-2g}"
-    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-2g}"
-    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-1536m}"
+    mem_limit: "${QWENPAW_MEMORY_LIMIT:-1300m}"
+    memswap_limit: "${QWENPAW_MEMORY_SWAP_LIMIT:-1300m}"
+    mem_reservation: "${QWENPAW_MEMORY_RESERVATION:-1g}"
     mem_swappiness: ${QWENPAW_MEMORY_SWAPPINESS:-0}
     pids_limit: ${QWENPAW_PIDS_LIMIT:-256}
     oom_kill_disable: false
@@ -31,22 +28,13 @@ services:
         soft: ${QWENPAW_NOFILE_SOFT_LIMIT:-2048}
         hard: ${QWENPAW_NOFILE_HARD_LIMIT:-4096}
     tmpfs:
-      - /tmp:size=${QWENPAW_TMPFS_SIZE:-256m},mode=1777
+      - /tmp:size=${QWENPAW_TMPFS_SIZE:-64m},mode=1777
     ports:
       - "8088:8088"
     environment:
       - QWENPAW_AUTH_ENABLED=${QWENPAW_AUTH_ENABLED:-false}
       - QWENPAW_AUTH_USERNAME=${QWENPAW_AUTH_USERNAME:-admin}
       - QWENPAW_AUTH_PASSWORD=${QWENPAW_AUTH_PASSWORD:-}
-      - TMPDIR=${QWENPAW_TMPDIR:-/app/working}
-      - XDG_CACHE_HOME=${QWENPAW_CACHE_HOME:-/app/working/.cache}
-      - HF_HOME=${QWENPAW_HF_HOME:-/app/working/.cache/huggingface}
-      - transcription_provider_type=${QWENPAW_TRANSCRIPTION_PROVIDER_TYPE:-local_whisper}
-      - OMP_NUM_THREADS=${QWENPAW_OMP_NUM_THREADS:-1}
-      - OPENBLAS_NUM_THREADS=${QWENPAW_OPENBLAS_NUM_THREADS:-1}
-      - MKL_NUM_THREADS=${QWENPAW_MKL_NUM_THREADS:-1}
-      - NUMEXPR_NUM_THREADS=${QWENPAW_NUMEXPR_NUM_THREADS:-1}
-      - TOKENIZERS_PARALLELISM=${QWENPAW_TOKENIZERS_PARALLELISM:-false}
     volumes:
       - qwenpaw-data:/app/working
       - qwenpaw-secrets:/app/working.secret
